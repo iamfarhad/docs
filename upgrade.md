@@ -6,20 +6,23 @@
 ## High Impact Changes
 
 <div class="content-list" markdown="1">
-- [Symfony 5 Related Upgrades](#symfony-5-related-upgrades)
 - [Authentication Scaffolding](#authentication-scaffolding)
 - [Date Serialization](#date-serialization)
+- [Symfony 5 Related Upgrades](#symfony-5-related-upgrades)
 </div>
 
 <a name="medium-impact-changes"></a>
 ## Medium Impact Changes
 
 <div class="content-list" markdown="1">
-- [The `Blade::component` Method](#the-blade-component-method)
 - [Blade Components & "Blade X"](#blade-components-and-blade-x)
+- [CORS Support](#cors-support)
 - [Factory Types](#factory-types)
-- [The `different` Validation Rule](#the-different-rule)
+- [Markdown Mail Template Updates](#markdown-mail-template-updates)
+- [The `Blade::component` Method](#the-blade-component-method)
 - [The `assertSee` Assertion](#assert-see)
+- [The `different` Validation Rule](#the-different-rule)
+- [Unique Route Names](#unique-route-names)
 </div>
 
 <a name="upgrade-7.0"></a>
@@ -44,7 +47,7 @@ The new minimum PHP version is now 7.2.5.
 <a name="updating-dependencies"></a>
 ### Updating Dependencies
 
-Update your `laravel/framework` dependency to `^7.0` in your `composer.json` file. In addition, update your `nunomaduro/collision` dependency to `^4.1`.
+Update your `laravel/framework` dependency to `^7.0` in your `composer.json` file. In addition, update your `nunomaduro/collision` dependency to `^4.1`, `phpunit/phpunit` dependency to `^8.5`, `laravel/tinker` dependency to `^2.0`, and `facade/ignition` to `^2.0`.
 
 The following first-party packages have new major releases to support Laravel 7. If there are any, read through their individual upgrade guides before upgrading:
 
@@ -84,7 +87,7 @@ Next, please update your `session` configuration file's `secure` option to have 
 
 **Likelihood Of Impact: High**
 
-All authentication scaffolding has been moved to the `laravel/ui` repository. If you are using Laravel's authentication scaffolding, you should install the `^2.0` release of this package:
+All authentication scaffolding has been moved to the `laravel/ui` repository. If you are using Laravel's authentication scaffolding, you should install the `^2.0` release of this package and the package should be installed in all environments. If you were previously including this package in the `require-dev` portion of your application's `composer.json` file, you should move it to the `require` section:
 
     composer require laravel/ui "^2.0"
 
@@ -191,11 +194,16 @@ The Zend Diactoros library for generating PSR-7 responses has been deprecated. I
 
 In order to support multiple mailers, the default `mail` configuration file has changed in Laravel 7.x to include an array of `mailers`. However, in order to preserve backwards compatibility, the Laravel 6.x format of this configuration file is still supported. So, no changes are **required** when upgrading to Laravel 7.x; however, you may wish to [examine the new `mail` configuration file](https://github.com/laravel/laravel/blob/develop/config/mail.php) structure and update your file to reflect the changes.
 
+<a name="markdown-mail-template-updates"></a>
 #### Markdown Mail Template Updates
 
-**Likelihood Of Impact: Low**
+**Likelihood Of Impact: Medium**
 
 The default Markdown mail templates have been refreshed with a more professional and appealing design. In addition, the undocumented `promotion` Markdown mail component has been removed.
+
+Because identitation has special meaning within Markdown, Markdown mail templates expect unindented HTML. If you've previously published Laravel's default mail templates, you'll need to re-publish your mail templates or manually unindent them:
+
+    php artisan vendor:publish --tag=laravel-mail --force
 
 ### Queue
 
@@ -221,6 +229,26 @@ The deprecated `Illuminate\Http\Resources\Json\Resource` class has been removed.
 
 The router's `getRoutes` method now returns an instance of `Illuminate\Routing\RouteCollectionInterface` instead of `Illuminate\Routing\RouteCollection`.
 
+<a name="unique-route-names"></a>
+#### Unique Route Names
+
+**Likelihood Of Impact: Medium**
+
+Even though never officially documented, previous Laravel releases allow you to define two different routes with the same name. In Laravel 7 this is no longer possible and you should always provide unique names for your routes. Routes with duplicate names can cause unexpected behavior in multiple areas of the framework.
+
+<a name="cors-support"></a>
+#### CORS Support
+
+**Likelihood Of Impact: Medium**
+
+Cross-Origin Resource Sharing (CORS) support is now integrated by default. If you are using any third-party CORS libraries you are now advised to use the [new `cors` configuration file](https://github.com/laravel/laravel/blob/develop/config/cors.php).
+
+Next, install the underlying CORS library as a dependency of your application:
+
+    composer require fruitcake/laravel-cors
+
+Finally, add the `\Fruitcake\Cors\HandleCors::class` middleware to your `App\Http\Kernel` global middleware list.
+
 ### Session
 
 #### The `array` Session Driver
@@ -236,7 +264,14 @@ The `array` session driver data is now persistent for the current request. Previ
 
 **Likelihood Of Impact: Medium**
 
-The `assertSee` and `assertDontSee` assertions on the `TestResponse` class will now automatically escape values. If you are manually escaping any values passed to these assertions you should no longer do so.
+The `assertSee` and `assertDontSee` assertions on the `TestResponse` class will now automatically escape values. If you are manually escaping any values passed to these assertions you should no longer do so. If you need to assert unescaped values, you may pass `false` as the second argument to the method.
+
+<a name="assert-see"></a>
+#### The `TestResponse` Class
+
+**Likelihood Of Impact: Low**
+
+The `Illuminate\Foundation\Testing\TestResponse` class has been renamed to `Illuminate\Testing\TestResponse`. If you're extending this class, make sure to update the namespace.
 
 ### Validation
 
@@ -250,4 +285,4 @@ The `different` rule will now fail if one of the specified parameters is missing
 <a name="miscellaneous"></a>
 ### Miscellaneous
 
-We also encourage you to view the changes in the `laravel/laravel` [GitHub repository](https://github.com/laravel/laravel). While many of these changes are not required, you may wish to keep these files in sync with your application. Some of these changes will be covered in this upgrade guide, but others, such as changes to configuration files or comments, will not be. You can easily view the changes with the [GitHub comparison tool](https://github.com/laravel/laravel/compare/6.0...master) and choose which updates are important to you.
+We also encourage you to view the changes in the `laravel/laravel` [GitHub repository](https://github.com/laravel/laravel). While many of these changes are not required, you may wish to keep these files in sync with your application. Some of these changes will be covered in this upgrade guide, but others, such as changes to configuration files or comments, will not be. You can easily view the changes with the [GitHub comparison tool](https://github.com/laravel/laravel/compare/6.x...master) and choose which updates are important to you.
